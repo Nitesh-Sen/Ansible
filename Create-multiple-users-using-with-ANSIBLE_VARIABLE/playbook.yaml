@@ -6,10 +6,10 @@
   become: yes
   become_user: root
   vars_files:
-      - /home/nsen/ansible/create-users/vars.yaml
+      - /home/nsen/ansible-vars/vars.yaml
   tasks:
       - name: create multiple users
         user:
          name: "{{ item.name }}"
-         state: absent  
+         state: present
         with_items: "{{ users }}"
