@@ -1,0 +1,58 @@
+---
+- name: Install Apache if condition is true
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: yes
+  become_user: root
+  tasks:
+
+# --- To check the Apache Installation. --- #
+    - name: Check if Apache needs to be installed
+      stat:
+        path: /etc/apache2/apache2.conf
+      register: apache_installed
+      become: true
+
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+      when: not apache_installed.stat.exists
+      become: true
+
+# --- To check the Status of Apache. --- #
+    - name: Check Apache service status
+      systemd:
+        name: apache2
+        state: started
+        enabled: yes
+      register: apache_status
+
+    - name: Start Apache if it is stopped
+      systemd:
+        name: apache2
+        state: started
+      when: apache_status.changed
+      become: true
+
+# --- To check the index.html. Is that configured or not --- #
+    - name: Check if "hello world" is already in index.html
+      command: cat /var/www/html/index.html
+      register: index_html_content
+      changed_when: false
+      become: true
+
+    - name: Copy index.html from a different source
+      copy:
+        src: /home/nsen/ansible/conditions/index.html
+        dest: /var/www/html/index.html
+      when: '"hello world" not in index_html_content.stdout'
+      become: true
+
+    - name: Ensure "hello world" is present in index.html
+      lineinfile:
+        path: /var/www/html/index.html
+        line: "Hello World....    ;)"
+      when: '"hello world" not in index_html_content.stdout'
+      become: true
