@@ -1,0 +1,15 @@
+---
+- name: My Ansible Playbook
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: yes
+  become_user: root
+  vars_files:
+      - /home/nsen/ansible/create-users/vars.yaml
+  tasks:
+      - name: create multiple users
+        user:
+         name: "{{ item.name }}"
+         state: absent  
+        with_items: "{{ users }}"
